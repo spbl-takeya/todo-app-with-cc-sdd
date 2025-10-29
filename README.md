@@ -6,6 +6,29 @@
 
 cc-sddは、Claude Codeを使った仕様駆動開発のアプローチです。specディレクトリに仕様ファイルを配置し、Claude Codeがそれを参照しながら開発を進めることで、一貫性のある実装を実現します。
 
+## 前提条件
+
+このリポジトリは **Claude Code** での開発を想定しています。
+
+cc-sddは複数のAIエージェントに対応していますが、このプロジェクトではClaude Code用の設定のみが含まれています：
+- `CLAUDE.md` - Claude Code用のプロジェクトメモリ
+- `.claude/commands/kiro/` - Claude Code用のslashコマンド
+
+### 他のエージェントを使用する場合
+
+Cursor、GitHub Copilot、Windsurfなどを使用する場合は、それぞれのオプションで追加インストールが必要です：
+
+```bash
+# Cursor IDE向け
+npx cc-sdd@latest --cursor --lang ja
+
+# GitHub Copilot向け
+npx cc-sdd@latest --copilot --lang ja
+
+# Windsurf向け
+npx cc-sdd@latest --windsurf --lang ja
+```
+
 ## 初期設定
 
 ### 1. リポジトリの初期化
