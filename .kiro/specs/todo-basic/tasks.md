@@ -9,7 +9,7 @@
   - 開発サーバーが正常に起動することを確認
   - _Requirements: 全要件の基盤となる環境構築_
 
-- [ ] 1.2 プロジェクト構造とルーティングの確立
+- [x] 1.2 プロジェクト構造とルーティングの確立
   - src配下のディレクトリ構造を作成（components, services, repositories, types）
   - エントリーポイント（main.tsx, App.tsx）を設定
   - 基本的なスタイル設定（CSS）を準備
