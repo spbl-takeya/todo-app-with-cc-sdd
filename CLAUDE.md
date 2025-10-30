@@ -15,7 +15,9 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 **Specs** (`.kiro/specs/`) - Formalize development process for individual features
 
 ### Active Specifications
-- Check `.kiro/specs/` for active specifications
+- **todo-basic**: TODOアプリの基本機能（作成・表示・完了・削除）
+  - Phase: initialized
+  - Path: `.kiro/specs/todo-basic/`
 - Use `/kiro:spec-status [feature-name]` to check progress
 
 ## Development Guidelines
