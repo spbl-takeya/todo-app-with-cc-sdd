@@ -1,4 +1,4 @@
-import type { TodoItem, Result, CreateTodoError, DeleteTodoError, StorageError } from '../types/todo'
+import type { TodoItem, Result, CreateTodoError, ToggleTodoError, DeleteTodoError, StorageError } from '../types/todo'
 import type { TodoRepository } from '../repositories/TodoRepository'
 
 /**
@@ -87,6 +87,49 @@ export class TodoService {
     }
 
     return { success: true, value: { ...newTodo } }
+  }
+
+  /**
+   * Todoアイテムの完了状態を切り替え
+   */
+  toggleTodo(id: string): Result<TodoItem, ToggleTodoError> {
+    // アイテムの存在確認
+    const index = this.todos.findIndex(t => t.id === id)
+    if (index === -1) {
+      return {
+        success: false,
+        error: {
+          type: 'TODO_NOT_FOUND',
+          message: 'TODOアイテムが見つかりません',
+        },
+      }
+    }
+
+    // 現在の状態をバックアップ（ロールバック用）
+    const originalTodo = { ...this.todos[index] }
+
+    // 完了状態を切り替え
+    const updatedTodo: TodoItem = {
+      ...this.todos[index],
+      completed: !this.todos[index].completed,
+      completedAt: !this.todos[index].completed ? new Date().toISOString() : null,
+    }
+
+    // メモリ内リストを更新
+    this.todos[index] = updatedTodo
+
+    // Repositoryに保存
+    const saveResult = this.repository.saveTodos(this.todos)
+    if (!saveResult.success) {
+      // 保存失敗時はロールバック
+      this.todos[index] = originalTodo
+      return {
+        success: false,
+        error: this.createStorageError(),
+      }
+    }
+
+    return { success: true, value: { ...updatedTodo } }
   }
 
   /**

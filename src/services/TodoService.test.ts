@@ -242,4 +242,107 @@ describe('TodoService', () => {
       expect(todos.find(t => t.title === 'タスク2')).toBeUndefined()
     })
   })
+
+  describe('toggleTodo', () => {
+    it('未完了のTodoを完了に切り替えられる', () => {
+      const createResult = service.createTodo('テストタスク')
+      expect(createResult.success).toBe(true)
+
+      if (createResult.success) {
+        const toggleResult = service.toggleTodo(createResult.value.id)
+
+        expect(toggleResult.success).toBe(true)
+        if (toggleResult.success) {
+          expect(toggleResult.value.completed).toBe(true)
+          expect(toggleResult.value.completedAt).not.toBeNull()
+          expect(toggleResult.value.completedAt).toBeDefined()
+        }
+      }
+    })
+
+    it('完了済みのTodoを未完了に戻せる', () => {
+      const createResult = service.createTodo('テストタスク')
+      expect(createResult.success).toBe(true)
+
+      if (createResult.success) {
+        // 完了にする
+        service.toggleTodo(createResult.value.id)
+
+        // 未完了に戻す
+        const toggleResult = service.toggleTodo(createResult.value.id)
+
+        expect(toggleResult.success).toBe(true)
+        if (toggleResult.success) {
+          expect(toggleResult.value.completed).toBe(false)
+          expect(toggleResult.value.completedAt).toBeNull()
+        }
+      }
+    })
+
+    it('完了日時が正しいISO 8601形式で記録される', () => {
+      const createResult = service.createTodo('テストタスク')
+      expect(createResult.success).toBe(true)
+
+      if (createResult.success) {
+        const beforeToggle = new Date()
+        const toggleResult = service.toggleTodo(createResult.value.id)
+        const afterToggle = new Date()
+
+        expect(toggleResult.success).toBe(true)
+        if (toggleResult.success && toggleResult.value.completedAt) {
+          const completedDate = new Date(toggleResult.value.completedAt)
+          expect(completedDate.getTime()).toBeGreaterThanOrEqual(beforeToggle.getTime())
+          expect(completedDate.getTime()).toBeLessThanOrEqual(afterToggle.getTime())
+          // ISO 8601形式チェック
+          expect(toggleResult.value.completedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
+        }
+      }
+    })
+
+    it('存在しないIDでTODO_NOT_FOUNDエラーを返す', () => {
+      const result = service.toggleTodo('non-existent-id')
+
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error.type).toBe('TODO_NOT_FOUND')
+        expect(result.error.message).toContain('見つかりません')
+      }
+    })
+
+    it('Repository保存エラーをSTORAGE_ERRORとして返す', () => {
+      const createResult = service.createTodo('タスク')
+      expect(createResult.success).toBe(true)
+
+      vi.mocked(repository.saveTodos).mockReturnValue({
+        success: false,
+        error: {
+          type: 'STORAGE_UNAVAILABLE',
+          message: 'ストレージエラー',
+        },
+      })
+
+      if (createResult.success) {
+        const result = service.toggleTodo(createResult.value.id)
+
+        expect(result.success).toBe(false)
+        if (!result.success) {
+          expect(result.error.type).toBe('STORAGE_ERROR')
+        }
+      }
+    })
+
+    it('切り替え後、getTodoByIdで更新された状態を取得できる', () => {
+      const createResult = service.createTodo('タスク')
+      expect(createResult.success).toBe(true)
+
+      if (createResult.success) {
+        service.toggleTodo(createResult.value.id)
+        const todo = service.getTodoById(createResult.value.id)
+
+        expect(todo).not.toBeNull()
+        expect(todo?.completed).toBe(true)
+        expect(todo?.completedAt).not.toBeNull()
+      }
+    })
+  })
 })

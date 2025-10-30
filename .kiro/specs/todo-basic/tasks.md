@@ -50,7 +50,7 @@
   - Repositoryとの連携を確立
   - _Requirements: 1.1, 1.3, 1.4, 4.1, 4.3, 4.4_
 
-- [ ] 4.2 TodoServiceの完了状態管理
+- [x] 4.2 TodoServiceの完了状態管理
   - 完了/未完了の切り替え機能を実装
   - 完了日時の記録機能を実装
   - 未完了に戻す際のcompletedAtクリア処理を実装
