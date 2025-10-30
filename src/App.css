@@ -2,6 +2,7 @@
   max-width: 600px;
   margin: 0 auto;
   padding: 2rem;
+  text-align: left;
 }
 
 .todo-form {
@@ -58,9 +59,10 @@
 }
 
 .empty-message {
-  text-align: center;
+  text-align: left;
   color: #6c757d;
   font-style: italic;
+  padding: 1rem 0;
 }
 
 .todo-list {
@@ -88,6 +90,10 @@
 .todo-title {
   flex: 1;
   color: inherit;
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  margin-right: 1rem;
 }
 
 .todo-actions {
