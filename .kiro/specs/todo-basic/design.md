@@ -46,12 +46,14 @@ graph TB
 ### Technology Stack and Design Decisions
 
 #### Frontend
-- **選択**: Vanilla JavaScript (ES6+) + HTML5 + CSS3
+- **選択**: React 19 + TypeScript + CSS3
 - **理由**:
-  - シンプルな機能要件に対してフレームワークは過剰
-  - 学習曲線が低く、依存関係がない
-  - ブラウザネイティブ機能のみで実装可能
-- **代替案**: React/Vue.js（学習コストと複雑性が高い）
+  - 宣言的UIで状態管理が直感的
+  - コンポーネント再利用性が高く、保守性に優れる
+  - TypeScriptによる型安全性で開発時のエラー削減
+  - 広く採用されており、エコシステムが充実
+  - React 19の最新機能（Compiler、Actions、useOptimistic等）が利用可能
+- **代替案**: Vanilla JavaScript（大規模化時の状態管理が複雑）、Vue.js（Reactとの親和性確認済み）
 
 #### Data Storage
 - **選択**: Browser LocalStorage API
@@ -62,38 +64,42 @@ graph TB
 - **代替案**: IndexedDB（より複雑な構造化データ向け、今回は不要）
 
 #### Architecture Pattern
-- **選択**: MV* (Model-View-Service) パターン
+- **選択**: Container/Presentational + Repository パターン
 - **理由**:
-  - UI、ロジック、データの明確な分離
-  - テスタビリティが高い
-  - 小規模アプリに適したシンプルさ
-- **代替案**: MVVMやFluxパターン（フレームワーク依存、過剰設計）
+  - Reactの状態管理とロジック/UIの分離に適合
+  - Container（ロジック）とPresentational（表示）の責務が明確
+  - Repositoryパターンでデータアクセス層を抽象化
+  - Reactのベストプラクティスに沿った設計
+- **代替案**: Redux/Context API（今回の規模では過剰）、Fluxパターン（複雑性が高い）
 
 ### Key Design Decisions
 
-#### Decision 1: クライアントサイドレンダリング
+#### Decision 1: React宣言的UI + Hooks状態管理
 
-**Decision**: すべてのUIをJavaScriptで動的に生成・更新する
+**Decision**: ReactのuseStateとuseEffectを使用した宣言的UI構築
 
-**Context**: TODOアイテムのリストは動的に変化し、リアルタイムなUI更新が必要
+**Context**: TODOアイテムのリストは動的に変化し、リアルタイムなUI更新が必要。加えて、LocalStorageとの同期も必要
 
 **Alternatives**:
-- サーバーサイドレンダリング: バックエンド不要の要件と矛盾
-- テンプレートエンジン: 追加ライブラリが不要な規模
+- クラスコンポーネント: 古い記法で冗長
+- Redux/Context API: 小規模アプリには過剰
+- Vanilla JavaScript: 状態管理が複雑化
 
 **Selected Approach**:
-- DOMを直接操作してTODOアイテムを描画
-- イベントリスナーでユーザー操作を処理
-- 状態変更時にUIを再描画
+- useStateでTODOリストの状態を管理
+- useEffectでLocalStorageとの同期（初期読み込み・自動保存）
+- Reactの仮想DOMで効率的なUI更新
+- 関数コンポーネントでシンプルな実装
 
 **Rationale**:
-- 依存関係ゼロでシンプル
-- ブラウザネイティブAPIのみ使用
-- パフォーマンス十分（数百アイテム程度まで）
+- Reactの宣言的UIで状態とUIの同期が自動
+- useEffectでデータ永続化のロジックを分離
+- 関数コンポーネントはシンプルで理解しやすい
+- TypeScriptとの相性が良い
 
 **Trade-offs**:
-- 獲得: シンプルさ、軽量性、依存関係なし
-- 犠牲: 大規模データでの最適化、複雑なUI状態管理
+- 獲得: 状態管理の簡潔さ、保守性、型安全性
+- 犠牲: Reactの依存関係追加、ビルドステップ必要
 
 #### Decision 2: 同期的なLocalStorage操作
 
@@ -149,31 +155,31 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant User as ユーザー
-    participant UI as UI層
+    participant App as App Component
     participant Service as TodoService
-    participant Storage as StorageService
+    participant Repo as TodoRepository
     participant LS as LocalStorage
 
-    User->>UI: タイトル入力 & 作成ボタンクリック
-    UI->>UI: 入力バリデーション（空チェック）
+    User->>App: タイトル入力 & 作成ボタンクリック
+    App->>App: バリデーション（空チェック）
     alt 入力が空
-        UI->>User: エラーメッセージ表示
+        App->>User: エラー状態表示
     else 入力が有効
-        UI->>Service: createTodo(title)
+        App->>Service: createTodo(title)
         Service->>Service: TodoItemオブジェクト生成<br/>(UUID, title, completed:false, createdAt)
-        Service->>Storage: saveTodos(todos)
-        Storage->>LS: setItem('todos', JSON.stringify(todos))
+        Service->>Repo: saveTodos(todos)
+        Repo->>LS: setItem('todos', JSON.stringify(todos))
         alt 保存成功
-            LS-->>Storage: 成功
-            Storage-->>Service: 成功
-            Service-->>UI: 新しいTodoItem
-            UI->>UI: リスト再描画
-            UI->>User: 新アイテム表示
+            LS-->>Repo: 成功
+            Repo-->>Service: 成功
+            Service-->>App: 新しいTodoItem
+            App->>App: useState更新（自動再レンダリング）
+            App->>User: 新アイテム表示
         else 保存失敗
-            LS-->>Storage: エラー
-            Storage-->>Service: エラー
-            Service-->>UI: エラー
-            UI->>User: エラーメッセージ表示
+            LS-->>Repo: エラー
+            Repo-->>Service: エラー
+            Service-->>App: エラー
+            App->>User: エラー状態表示
         end
     end
 ```
@@ -183,106 +189,208 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant User as ユーザー
-    participant UI as UI層
+    participant App as App Component
     participant Service as TodoService
-    participant Storage as StorageService
+    participant Repo as TodoRepository
     participant LS as LocalStorage
 
-    User->>UI: 完了ボタンクリック
-    UI->>Service: toggleTodo(id)
+    User->>App: 完了ボタンクリック
+    App->>Service: toggleTodo(id)
     Service->>Service: アイテム検索(id)
     Service->>Service: completed状態反転
     Service->>Service: completedAt更新
-    Service->>Storage: saveTodos(todos)
-    Storage->>LS: setItem('todos', JSON.stringify(todos))
-    LS-->>Storage: 成功
-    Storage-->>Service: 成功
-    Service-->>UI: 更新されたTodoItem
-    UI->>UI: アイテムのスタイル更新<br/>(打ち消し線追加/削除)
-    UI->>User: 視覚的フィードバック
+    Service->>Repo: saveTodos(todos)
+    Repo->>LS: setItem('todos', JSON.stringify(todos))
+    LS-->>Repo: 成功
+    Repo-->>Service: 成功
+    Service-->>App: 更新されたTodoItem
+    App->>App: useState更新（自動再レンダリング）
+    App->>User: スタイル自動更新（打ち消し線）
 ```
 
 ## Requirements Traceability
 
 | Requirement | 要件概要 | コンポーネント | インターフェース | フロー |
 |-------------|---------|--------------|----------------|--------|
-| 1.1 | タイトル入力してアイテム作成 | TodoService, UIComponent | createTodo() | 作成フロー |
-| 1.2 | 空タイトルでエラー表示 | UIComponent | validateInput() | 作成フロー |
+| 1.1 | タイトル入力してアイテム作成 | TodoService, App | createTodo() | 作成フロー |
+| 1.2 | 空タイトルでエラー表示 | TodoForm | バリデーション | 作成フロー |
 | 1.3 | 未完了状態で保存 | TodoService | createTodo() | 作成フロー |
 | 1.4 | 作成日時の自動記録 | TodoService | createTodo() | 作成フロー |
-| 2.1 | すべてのアイテムをリスト表示 | UIComponent, TodoService | getAllTodos(), renderTodoList() | - |
-| 2.2 | タイトルと完了状態を表示 | UIComponent | renderTodoItem() | - |
-| 2.3 | 未完了と完了済みを視覚的に区別 | UIComponent | renderTodoItem() | - |
-| 2.4 | 空リストでメッセージ表示 | UIComponent | renderTodoList() | - |
+| 2.1 | すべてのアイテムをリスト表示 | App, TodoList | useState, map() | - |
+| 2.2 | タイトルと完了状態を表示 | TodoItem | Props表示 | - |
+| 2.3 | 未完了と完了済みを視覚的に区別 | TodoItem | className切替 | - |
+| 2.4 | 空リストでメッセージ表示 | TodoList | 条件付きレンダリング | - |
 | 3.1 | 完了ボタンで状態変更 | TodoService | toggleTodo() | 完了トグルフロー |
-| 3.2 | 完了マーク適用 | UIComponent | renderTodoItem() | 完了トグルフロー |
+| 3.2 | 完了マーク適用 | TodoItem | className切替 | 完了トグルフロー |
 | 3.3 | 完了済みを未完了に戻す | TodoService | toggleTodo() | 完了トグルフロー |
 | 3.4 | 完了日時を記録 | TodoService | toggleTodo() | 完了トグルフロー |
 | 4.1 | 削除ボタンでアイテム削除 | TodoService | deleteTodo() | - |
-| 4.2 | 削除を即座にUIから除去 | UIComponent | renderTodoList() | - |
+| 4.2 | 削除を即座にUIから除去 | App | useState更新 | - |
 | 4.3 | 完了状態でも削除可能 | TodoService | deleteTodo() | - |
 | 4.4 | 削除は永続的（undo不可） | TodoService | deleteTodo() | - |
-| 5.1 | 変更をLocalStorageに自動保存 | StorageService | saveTodos() | 全フロー |
-| 5.2 | アプリ再起動時にデータ復元 | StorageService, TodoService | loadTodos() | - |
-| 5.3 | 保存失敗時にエラー表示 | UIComponent | showError() | 全フロー |
-| 5.4 | LocalStorage不可時に警告 | StorageService, UIComponent | checkStorageAvailable() | - |
+| 5.1 | 変更をLocalStorageに自動保存 | TodoRepository | saveTodos() | 全フロー |
+| 5.2 | アプリ再起動時にデータ復元 | TodoRepository, useEffect | loadTodos() | - |
+| 5.3 | 保存失敗時にエラー表示 | App | エラー状態表示 | 全フロー |
+| 5.4 | LocalStorage不可時に警告 | TodoRepository, App | checkStorageAvailable() | - |
 
 ## Components and Interfaces
 
 ### プレゼンテーション層
 
-#### UIComponent
+#### App Component (Container)
 
 **Responsibility & Boundaries**
-- **Primary Responsibility**: ユーザーインターフェースの描画、ユーザーイベントの処理、視覚的フィードバックの提供
-- **Domain Boundary**: プレゼンテーション層のみ。ビジネスロジックは持たず、TodoServiceに委譲
-- **Data Ownership**: DOM要素の管理のみ。アプリケーションデータは所有しない
+- **Primary Responsibility**: アプリケーション全体の状態管理、ビジネスロジックの呼び出し、子コンポーネントへのprops渡し
+- **Domain Boundary**: プレゼンテーション層のコンテナ。ビジネスロジックはTodoServiceに委譲
+- **Data Ownership**: useStateによるTODOリストの状態管理、エラー状態の管理
 
 **Dependencies**
-- **Inbound**: なし（エントリーポイント）
-- **Outbound**: TodoService（データ操作）
-- **External**: Browser DOM API
+- **Inbound**: なし（ルートコンポーネント）
+- **Outbound**: TodoService、TodoRepository
+- **External**: React Hooks (useState, useEffect)
 
 **Contract Definition**
 
 ```typescript
-interface UIComponent {
-  // 初期化とレンダリング
-  init(): void;
-  renderTodoList(): void;
-  renderTodoItem(todo: TodoItem): HTMLElement;
+interface AppProps {}
 
-  // イベントハンドラ
-  handleCreateTodo(title: string): void;
-  handleToggleTodo(id: string): void;
-  handleDeleteTodo(id: string): void;
-
-  // ユーザーフィードバック
-  showError(message: string): void;
-  showWarning(message: string): void;
-  clearMessages(): void;
-
-  // バリデーション
-  validateInput(title: string): Result<string, ValidationError>;
+interface AppState {
+  todos: TodoItem[];
+  error: string | null;
+  loading: boolean;
 }
 
-type ValidationError = {
-  type: 'EMPTY_TITLE' | 'INVALID_INPUT';
-  message: string;
+const App: React.FC<AppProps> = () => {
+  const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // useEffectでLocalStorageから初期データ読み込み
+  useEffect(() => { /* loadTodos */ }, []);
+
+  // useEffectで状態変更時に自動保存
+  useEffect(() => { /* saveTodos */ }, [todos]);
+
+  // イベントハンドラ
+  const handleCreate = (title: string): void => { /* ... */ };
+  const handleToggle = (id: string): void => { /* ... */ };
+  const handleDelete = (id: string): void => { /* ... */ };
+
+  return (
+    <div>
+      <TodoForm onSubmit={handleCreate} />
+      <TodoList todos={todos} onToggle={handleToggle} onDelete={handleDelete} />
+      {error && <ErrorMessage message={error} />}
+    </div>
+  );
 };
 ```
 
-**Preconditions**:
-- DOM要素（#app, #todo-form, #todo-list等）がHTML内に存在する
-- TodoServiceが初期化済み
-
-**Postconditions**:
-- ユーザーアクション後、UIが最新のデータ状態を反映
-- エラー発生時、ユーザーに適切なメッセージが表示される
-
 **Invariants**:
-- 表示されるTODOリストは常にStorageの状態と同期
-- 完了状態のアイテムには視覚的マーク（打ち消し線）が適用される
+- todosステートは常にLocalStorageと同期
+- エラー発生時、errorステートに適切なメッセージが設定される
+
+#### TodoForm Component (Presentational)
+
+**Responsibility & Boundaries**
+- **Primary Responsibility**: TODOアイテム作成用の入力フォームの表示とバリデーション
+- **Domain Boundary**: 表示とバリデーションのみ。データ操作は親に委譲
+
+**Contract Definition**
+
+```typescript
+interface TodoFormProps {
+  onSubmit: (title: string) => void;
+}
+
+const TodoForm: React.FC<TodoFormProps> = ({ onSubmit }) => {
+  const [title, setTitle] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (title.trim() === '') {
+      setValidationError('タイトルを入力してください');
+      return;
+    }
+    onSubmit(title);
+    setTitle('');
+    setValidationError(null);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input value={title} onChange={(e) => setTitle(e.target.value)} />
+      <button type="submit">追加</button>
+      {validationError && <span className="error">{validationError}</span>}
+    </form>
+  );
+};
+```
+
+#### TodoList Component (Presentational)
+
+**Responsibility & Boundaries**
+- **Primary Responsibility**: TODOアイテムのリスト表示
+- **Domain Boundary**: 表示のみ。アクションは親に委譲
+
+**Contract Definition**
+
+```typescript
+interface TodoListProps {
+  todos: TodoItem[];
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+const TodoList: React.FC<TodoListProps> = ({ todos, onToggle, onDelete }) => {
+  if (todos.length === 0) {
+    return <p>TODOアイテムがありません</p>;
+  }
+
+  return (
+    <ul>
+      {todos.map(todo => (
+        <TodoItem
+          key={todo.id}
+          todo={todo}
+          onToggle={onToggle}
+          onDelete={onDelete}
+        />
+      ))}
+    </ul>
+  );
+};
+```
+
+#### TodoItem Component (Presentational)
+
+**Responsibility & Boundaries**
+- **Primary Responsibility**: 個別TODOアイテムの表示と完了/削除ボタン
+- **Domain Boundary**: 表示のみ。アクションは親に委譲
+
+**Contract Definition**
+
+```typescript
+interface TodoItemProps {
+  todo: TodoItem;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+const TodoItem: React.FC<TodoItemProps> = ({ todo, onToggle, onDelete }) => {
+  return (
+    <li className={todo.completed ? 'completed' : ''}>
+      <span style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
+        {todo.title}
+      </span>
+      <button onClick={() => onToggle(todo.id)}>
+        {todo.completed ? '未完了に戻す' : '完了'}
+      </button>
+      <button onClick={() => onDelete(todo.id)}>削除</button>
+    </li>
+  );
+};
+```
 
 ### ビジネスロジック層
 
@@ -294,8 +402,8 @@ type ValidationError = {
 - **Data Ownership**: メモリ内のTODOアイテムリストの管理
 
 **Dependencies**
-- **Inbound**: UIComponent
-- **Outbound**: StorageService
+- **Inbound**: App Component
+- **Outbound**: TodoRepository
 - **External**: crypto.randomUUID()
 
 **Contract Definition**
@@ -330,21 +438,21 @@ type DeleteTodoError = {
 ```
 
 **Preconditions**:
-- StorageServiceが初期化済み
+- TodoRepositoryが初期化済み
 - createTodo: titleが非空文字列
 
 **Postconditions**:
-- すべての変更操作後、StorageServiceを通じてデータが永続化される
+- すべての変更操作後、TodoRepositoryを通じてデータが永続化される
 - エラー時はロールバックされ、一貫性が保たれる
 
 **Invariants**:
 - 各TODOアイテムは一意のUUIDを持つ
 - createdAtは変更不可、completedAtは完了時のみ設定
-- メモリ内のtodosリストとStorageの内容は常に同期
+- メモリ内のtodosリストとLocalStorageの内容は常に同期
 
 ### データ永続化層
 
-#### StorageService
+#### TodoRepository
 
 **Responsibility & Boundaries**
 - **Primary Responsibility**: LocalStorageへのデータの読み書き、シリアライズ/デシリアライズ、ストレージ可用性チェック
@@ -352,15 +460,15 @@ type DeleteTodoError = {
 - **Data Ownership**: LocalStorageへのアクセス権限
 
 **Dependencies**
-- **Inbound**: TodoService
+- **Inbound**: TodoService、App Component
 - **Outbound**: なし
 - **External**: Browser LocalStorage API
 
 **Contract Definition**
 
 ```typescript
-interface StorageService {
-  // ストレージ操作
+interface TodoRepository {
+  // Repository操作
   saveTodos(todos: TodoItem[]): Result<void, StorageError>;
   loadTodos(): Result<TodoItem[], StorageError>;
   clearTodos(): Result<void, StorageError>;
@@ -588,87 +696,99 @@ console.error('[TodoApp Error]', {
    - 削除後のリスト長が正しい
    - 存在しないIDでエラーが返される
 
-4. **StorageService.saveTodos()**:
+4. **TodoRepository.saveTodos()**:
    - TodoListが正しくJSON形式でLocalStorageに保存される
    - LocalStorage無効時にSTORAGE_UNAVAILABLEエラーが返される
 
-5. **StorageService.loadTodos()**:
+5. **TodoRepository.loadTodos()**:
    - 保存されたデータが正しくTodoItem配列にパースされる
    - 破損データでPARSE_ERRORが返される
    - 空のストレージで空配列が返される
+
+6. **React Component Tests**:
+   - TodoFormコンポーネントが正しくレンダリングされる
+   - TodoItemコンポーネントが完了状態で打ち消し線を適用する
+   - TodoListコンポーネントが空配列で「TODOアイテムがありません」を表示する
 
 ### Integration Tests
 
 1. **作成→保存→読み込みフロー**:
    - TodoServiceでアイテム作成
-   - StorageServiceで保存
+   - TodoRepositoryで保存
+   - useEffectによる自動保存確認
    - ページリロードシミュレーション
    - 保存したアイテムが正しく復元される
 
 2. **完了トグル→永続化フロー**:
    - アイテムの完了状態を変更
-   - 変更がLocalStorageに反映される
+   - useEffectトリガーでLocalStorageに反映
    - リロード後も完了状態が保持される
 
 3. **削除→永続化フロー**:
    - アイテムを削除
-   - LocalStorageから削除される
+   - useState更新でLocalStorageから削除
    - リロード後も削除状態が保持される
 
 4. **エラーハンドリング統合**:
    - LocalStorageを無効化
    - 操作実行
+   - Appコンポーネントのerrorステートに反映
    - 適切なエラーメッセージがUIに表示される
-   - メモリモードでの動作確認
 
-5. **複数操作の連続実行**:
-   - 作成→完了→削除を連続実行
-   - 各操作後にストレージが正しく更新される
-   - UIが常に最新状態を反映
+5. **React Hooks統合**:
+   - useEffectによる初期データ読み込み
+   - useStateによる状態管理とUI自動更新
+   - 作成→完了→削除の連続操作で正しく再レンダリング
 
 ### E2E/UI Tests
 
+テストツール: React Testing Library + Jest または Vitest
+
 1. **TODOアイテム作成フロー**:
-   - タイトル入力フィールドに文字列を入力
+   - input要素に文字列を入力
    - 作成ボタンをクリック
    - 新しいアイテムがリストに表示される
-   - 入力フィールドがクリアされる
+   - input要素がクリアされる
 
 2. **空タイトルバリデーション**:
-   - 空のタイトルで作成ボタンをクリック
-   - エラーメッセージが表示される
-   - アイテムが作成されない
+   - 空のinputで作成ボタンをクリック
+   - エラーメッセージが表示される（screen.getByText()で確認）
+   - リスト項目が増加しない
 
 3. **完了トグル操作**:
    - 未完了アイテムの完了ボタンをクリック
-   - アイテムに打ち消し線が適用される
-   - 再度クリックで打ち消し線が解除される
+   - text-decorationスタイルが'line-through'になる
+   - 再度クリックで'none'に戻る
 
 4. **アイテム削除操作**:
    - アイテムの削除ボタンをクリック
-   - アイテムがリストから即座に消える
-   - リスト件数が減少する
+   - アイテムがDOMから削除される（queryByText()でnull確認）
+   - リスト項目数が減少する
 
 5. **データ永続化確認**:
    - 複数のアイテムを作成
-   - ページをリロード
+   - LocalStorage.getItem('todos')でデータ確認
+   - コンポーネント再マウント
    - すべてのアイテムが復元される
-   - 完了状態も保持される
 
 ### Performance Tests
 
 1. **大量アイテムのレンダリング**:
    - 100件のTODOアイテムを作成
-   - リスト描画が1秒以内に完了することを確認
+   - Reactの仮想DOMによるリスト描画が1秒以内に完了
+   - 再レンダリングのパフォーマンスを確認
 
 2. **連続操作のパフォーマンス**:
    - 10件のアイテムを連続作成
-   - 各操作が100ms以内に完了することを確認
+   - 各操作でのuseState更新が100ms以内に完了
+   - 不要な再レンダリングが発生しないことを確認
 
 3. **LocalStorage読み書き速度**:
    - 50件のアイテムをLocalStorageに保存
-   - 保存・読み込みが各50ms以内に完了することを確認
+   - useEffectトリガーでの保存が50ms以内に完了
+   - 読み込みが50ms以内に完了
 
-4. **メモリ使用量**:
+4. **React コンポーネントメモリ使用量**:
    - 500件のアイテムを作成
-   - ブラウザメモリ使用量が50MB以下であることを確認
+   - コンポーネントツリーのメモリ使用量が50MB以下
+   - メモリリークが発生しないことを確認
