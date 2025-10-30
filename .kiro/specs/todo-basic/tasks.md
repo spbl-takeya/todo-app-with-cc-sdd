@@ -66,28 +66,28 @@
 
 ## 5. Reactコンポーネント層の実装
 
-- [ ] 5.1 Appコンポーネント（Container）の実装
+- [x] 5.1 Appコンポーネント（Container）の実装
   - useStateでTODOリストの状態管理を実装
   - useEffectで初期データ読み込みを実装
   - useEffectでデータ変更時の自動保存を実装
   - エラー状態の管理を実装
   - _Requirements: 2.1, 5.1, 5.2_
 
-- [ ] 5.2 TodoFormコンポーネント（Presentational）の実装
+- [x] 5.2 TodoFormコンポーネント（Presentational）の実装
   - 入力フォームのUI実装
   - 入力バリデーション（空チェック）を実装
   - エラーメッセージ表示を実装
   - 作成成功時の入力フィールドクリアを実装
   - _Requirements: 1.1, 1.2_
 
-- [ ] 5.3 TodoListとTodoItemコンポーネント（Presentational）の実装
+- [x] 5.3 TodoListとTodoItemコンポーネント（Presentational）の実装
   - TodoListコンポーネントでリスト表示を実装
   - 空リスト時のメッセージ表示を実装
   - TodoItemコンポーネントで個別アイテム表示を実装
   - 完了状態による視覚的区別（打ち消し線）を実装
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 3.2_
 
-- [ ] 5.4 TodoItemコンポーネントのアクション実装
+- [x] 5.4 TodoItemコンポーネントのアクション実装
   - 完了/未完了切り替えボタンを実装
   - 削除ボタンを実装
   - ボタンクリック時の親コンポーネントへのコールバック連携を実装
