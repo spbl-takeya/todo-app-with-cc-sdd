@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { TodoItem } from './types/todo'
 import { TodoService } from './services/TodoService'
 import { TodoRepository } from './repositories/TodoRepository'
@@ -26,7 +26,7 @@ function App() {
   }, [])
 
   // TODOアイテム作成
-  const handleCreate = (title: string) => {
+  const handleCreate = useCallback((title: string) => {
     const result = todoService.createTodo(title)
     if (result.success) {
       setTodos(todoService.getAllTodos())
@@ -34,10 +34,10 @@ function App() {
     } else {
       setError(result.error.message)
     }
-  }
+  }, [])
 
   // 完了状態切り替え
-  const handleToggle = (id: string) => {
+  const handleToggle = useCallback((id: string) => {
     const result = todoService.toggleTodo(id)
     if (result.success) {
       setTodos(todoService.getAllTodos())
@@ -45,10 +45,10 @@ function App() {
     } else {
       setError(result.error.message)
     }
-  }
+  }, [])
 
   // 削除
-  const handleDelete = (id: string) => {
+  const handleDelete = useCallback((id: string) => {
     const result = todoService.deleteTodo(id)
     if (result.success) {
       setTodos(todoService.getAllTodos())
@@ -56,7 +56,7 @@ function App() {
     } else {
       setError(result.error.message)
     }
-  }
+  }, [])
 
   return (
     <div className="app">

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import type { TodoItem } from '../types/todo'
 
 interface TodoItemProps {
@@ -6,7 +7,7 @@ interface TodoItemProps {
   onDelete: (id: string) => void
 }
 
-export function TodoItemComponent({ todo, onToggle, onDelete }: TodoItemProps) {
+export const TodoItemComponent = memo(function TodoItemComponent({ todo, onToggle, onDelete }: TodoItemProps) {
   return (
     <li className={`todo-item ${todo.completed ? 'completed' : ''}`}>
       <span
@@ -31,4 +32,4 @@ export function TodoItemComponent({ todo, onToggle, onDelete }: TodoItemProps) {
       </div>
     </li>
   )
-}
+})
