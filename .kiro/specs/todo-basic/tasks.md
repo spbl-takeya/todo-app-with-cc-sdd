@@ -18,7 +18,7 @@
 
 ## 2. データモデルと型定義の実装
 
-- [ ] 2.1 TODOアイテムのデータモデル定義
+- [x] 2.1 TODOアイテムのデータモデル定義
   - TodoItem型を定義（id, title, completed, createdAt, completedAt）
   - Result型を定義（成功/失敗パターン）
   - エラー型を定義（CreateTodoError, ToggleTodoError, DeleteTodoError, StorageError）
