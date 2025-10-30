@@ -77,14 +77,17 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #fff;
+  color: #212529;
 }
 
 .todo-item.completed {
   background-color: #f8f9fa;
+  color: #6c757d;
 }
 
 .todo-title {
   flex: 1;
+  color: inherit;
 }
 
 .todo-actions {
