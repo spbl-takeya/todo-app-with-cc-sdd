@@ -2,7 +2,7 @@
 
 ## 1. プロジェクト基盤のセットアップ
 
-- [ ] 1.1 React 19プロジェクトの初期化とTypeScript設定
+- [x] 1.1 React 19プロジェクトの初期化とTypeScript設定
   - Viteを使用してReact 19プロジェクトを作成
   - TypeScript設定ファイルを構成（strict mode有効化）
   - 必要な型定義パッケージをインストール
