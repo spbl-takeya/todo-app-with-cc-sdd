@@ -144,14 +144,14 @@
 
 ## 9. テストの実装
 
-- [ ] 9.1 TodoRepositoryのユニットテスト
+- [x] 9.1 TodoRepositoryのユニットテスト
   - saveTodos, loadTodos, clearTodosのテストを作成
   - エラーケース（STORAGE_UNAVAILABLE, QUOTA_EXCEEDED, PARSE_ERROR）のテストを作成
   - モックLocalStorageを使用したテストを実装
   - カバレッジ80%以上を目標
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 9.2 TodoServiceのユニットテスト
+- [x] 9.2 TodoServiceのユニットテスト
   - createTodo, toggleTodo, deleteTodoのテストを作成
   - バリデーションエラーのテストを作成
   - Repository連携のテストを作成
