@@ -27,7 +27,7 @@
 
 ## 3. データ永続化層の実装
 
-- [ ] 3.1 TodoRepositoryの基本実装
+- [x] 3.1 TodoRepositoryの基本実装
   - LocalStorageへのデータ保存機能を実装
   - LocalStorageからのデータ読み込み機能を実装
   - ストレージ可用性チェック機能を実装
