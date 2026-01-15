@@ -57,7 +57,7 @@ describe('TodoForm', () => {
     await user.type(input, 'テストTODO')
     await user.click(screen.getByRole('button', { name: '追加' }))
 
-    expect(mockOnSubmit).toHaveBeenCalledWith('テストTODO', null)
+    expect(mockOnSubmit).toHaveBeenCalledWith('テストTODO')
     expect(mockOnSubmit).toHaveBeenCalledTimes(1)
   })
 
@@ -70,7 +70,7 @@ describe('TodoForm', () => {
     await user.type(input, '  テストTODO  ')
     await user.click(screen.getByRole('button', { name: '追加' }))
 
-    expect(mockOnSubmit).toHaveBeenCalledWith('テストTODO', null)
+    expect(mockOnSubmit).toHaveBeenCalledWith('テストTODO')
   })
 
   it('送信成功後に入力フィールドがクリアされる', async () => {

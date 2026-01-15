@@ -5,10 +5,9 @@ interface TodoListProps {
   todos: TodoItem[]
   onToggle: (id: string) => void
   onDelete: (id: string) => void
-  onUpdateDueDate: (id: string, dueDate: string | null) => void
 }
 
-export function TodoList({ todos, onToggle, onDelete, onUpdateDueDate }: TodoListProps) {
+export function TodoList({ todos, onToggle, onDelete }: TodoListProps) {
   if (todos.length === 0) {
     return <p className="empty-message">TODOアイテムがありません</p>
   }
@@ -21,7 +20,6 @@ export function TodoList({ todos, onToggle, onDelete, onUpdateDueDate }: TodoLis
           todo={todo}
           onToggle={onToggle}
           onDelete={onDelete}
-          onUpdateDueDate={onUpdateDueDate}
         />
       ))}
     </ul>
