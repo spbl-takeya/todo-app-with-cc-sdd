@@ -67,6 +67,7 @@ describe('TodoRepository', () => {
           completed: false,
           createdAt: '2025-10-30T12:00:00.000Z',
           completedAt: null,
+          dueDate: null,
         },
       ]
       const result = repository.saveTodos(todos)
@@ -83,6 +84,7 @@ describe('TodoRepository', () => {
           completed: false,
           createdAt: '2025-10-30T12:00:00.000Z',
           completedAt: null,
+          dueDate: null,
         },
         {
           id: '550e8400-e29b-41d4-a716-446655440001',
@@ -90,6 +92,7 @@ describe('TodoRepository', () => {
           completed: true,
           createdAt: '2025-10-30T12:00:00.000Z',
           completedAt: '2025-10-30T13:00:00.000Z',
+          dueDate: null,
         },
       ]
       const result = repository.saveTodos(todos)
@@ -122,6 +125,7 @@ describe('TodoRepository', () => {
           completed: false,
           createdAt: '2025-10-30T12:00:00.000Z',
           completedAt: null,
+          dueDate: null,
         },
       ]
       localStorageMock['todos'] = JSON.stringify(todos)
@@ -151,6 +155,7 @@ describe('TodoRepository', () => {
           completed: false,
           createdAt: '2025-10-30T12:00:00.000Z',
           completedAt: null,
+          dueDate: null,
         },
         {
           id: '550e8400-e29b-41d4-a716-446655440001',
@@ -158,6 +163,7 @@ describe('TodoRepository', () => {
           completed: true,
           createdAt: '2025-10-30T12:00:00.000Z',
           completedAt: '2025-10-30T13:00:00.000Z',
+          dueDate: null,
         },
       ]
       localStorageMock['todos'] = JSON.stringify(todos)
@@ -206,6 +212,7 @@ describe('TodoRepository', () => {
           completed: false,
           createdAt: '2025-10-30T12:00:00.000Z',
           completedAt: null,
+          dueDate: null,
         },
       ])
 

@@ -26,6 +26,11 @@ export interface TodoItem {
    * 完了日時（ISO 8601形式、未完了の場合はnull）
    */
   completedAt: string | null
+
+  /**
+   * 期限日（ISO 8601形式 YYYY-MM-DD、未設定の場合はnull）
+   */
+  dueDate: string | null
 }
 
 /**
@@ -66,3 +71,26 @@ export interface StorageError {
   type: 'STORAGE_UNAVAILABLE' | 'QUOTA_EXCEEDED' | 'PARSE_ERROR'
   message: string
 }
+
+/**
+ * 期限更新時のエラー型
+ */
+export interface UpdateDueDateError {
+  type: 'INVALID_DUE_DATE' | 'TODO_NOT_FOUND' | 'STORAGE_ERROR'
+  message: string
+}
+
+/**
+ * 期限の状態
+ */
+export type DueDateStatus = 'overdue' | 'due-soon' | 'on-time' | 'no-due-date'
+
+/**
+ * ソートオプション
+ */
+export type SortOption = 'created-asc' | 'created-desc' | 'due-date-asc' | 'due-date-desc'
+
+/**
+ * フィルターオプション
+ */
+export type FilterOption = 'all' | 'overdue' | 'today' | 'this-week' | 'this-month' | 'no-due-date'
