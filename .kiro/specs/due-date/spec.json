@@ -1,9 +1,9 @@
 {
   "feature_name": "due-date",
   "created_at": "2025-10-30T14:00:00Z",
-  "updated_at": "2026-01-16T04:00:00Z",
+  "updated_at": "2026-01-16T05:00:00Z",
   "language": "ja",
-  "phase": "completed",
+  "phase": "archived",
   "approvals": {
     "requirements": {
       "generated": true,
@@ -18,6 +18,7 @@
       "approved": true
     }
   },
-  "ready_for_implementation": true,
-  "implementation_completed": true
+  "ready_for_implementation": false,
+  "implementation_completed": false,
+  "archived_reason": "機能削除 - 仕様は将来の再実装のために保持"
 }

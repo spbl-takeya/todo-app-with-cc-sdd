@@ -18,10 +18,13 @@ Kiro-style Spec Driven Development implementation using claude code slash comman
 - **todo-basic**: TODOアプリの基本機能（作成・表示・完了・削除）
   - Phase: completed
   - Path: `.kiro/specs/todo-basic/`
-- **due-date**: TODOアイテムへの期限設定機能
-  - Phase: completed
-  - Path: `.kiro/specs/due-date/`
 - Use `/kiro:spec-status [feature-name]` to check progress
+
+### Archived Specifications
+- **due-date**: TODOアイテムへの期限設定機能
+  - Phase: archived
+  - Path: `.kiro/specs/due-date/`
+  - Reason: 機能削除 - 仕様は将来の再実装のために保持
 
 ## Development Guidelines
 - Think in English, but generate responses in Japanese (思考は英語、回答の生成は日本語で行うように)
