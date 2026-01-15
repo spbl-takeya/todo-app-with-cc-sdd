@@ -1,4 +1,15 @@
-import type { TodoItem, Result, CreateTodoError, ToggleTodoError, DeleteTodoError, StorageError } from '../types/todo'
+import type {
+  TodoItem,
+  Result,
+  CreateTodoError,
+  ToggleTodoError,
+  DeleteTodoError,
+  StorageError,
+  UpdateDueDateError,
+  SortOption,
+  FilterOption,
+} from '../types/todo'
+import { isValidDueDate, isToday, isThisWeek, isThisMonth, isOverdue } from '../utils/dateUtils'
 import type { TodoRepository } from '../repositories/TodoRepository'
 
 /**
@@ -51,7 +62,7 @@ export class TodoService {
   /**
    * 新しいTodoアイテムを作成
    */
-  createTodo(title: string): Result<TodoItem, CreateTodoError> {
+  createTodo(title: string, dueDate: string | null = null): Result<TodoItem, CreateTodoError> {
     // バリデーション: 空タイトルチェック
     if (title.trim() === '') {
       return {
@@ -63,6 +74,17 @@ export class TodoService {
       }
     }
 
+    // バリデーション: 期限日形式チェック
+    if (dueDate !== null && !isValidDueDate(dueDate)) {
+      return {
+        success: false,
+        error: {
+          type: 'INVALID_TITLE',
+          message: '無効な日付形式です',
+        },
+      }
+    }
+
     // 新しいTodoアイテムを作成
     const newTodo: TodoItem = {
       id: crypto.randomUUID(),
@@ -70,6 +92,7 @@ export class TodoService {
       completed: false,
       createdAt: new Date().toISOString(),
       completedAt: null,
+      dueDate,
     }
 
     // メモリ内リストに追加
@@ -166,5 +189,118 @@ export class TodoService {
     }
 
     return { success: true, value: undefined }
+  }
+
+  /**
+   * Todoアイテムの期限を更新
+   */
+  updateDueDate(id: string, dueDate: string | null): Result<TodoItem, UpdateDueDateError> {
+    // バリデーション: 期限日形式チェック
+    if (dueDate !== null && !isValidDueDate(dueDate)) {
+      return {
+        success: false,
+        error: {
+          type: 'INVALID_DUE_DATE',
+          message: '無効な日付形式です',
+        },
+      }
+    }
+
+    // アイテムの存在確認
+    const index = this.todos.findIndex(t => t.id === id)
+    if (index === -1) {
+      return {
+        success: false,
+        error: {
+          type: 'TODO_NOT_FOUND',
+          message: 'TODOアイテムが見つかりません',
+        },
+      }
+    }
+
+    // 現在の状態をバックアップ（ロールバック用）
+    const originalTodo = { ...this.todos[index] }
+
+    // 期限を更新
+    const updatedTodo: TodoItem = {
+      ...this.todos[index],
+      dueDate,
+    }
+
+    // メモリ内リストを更新
+    this.todos[index] = updatedTodo
+
+    // Repositoryに保存
+    const saveResult = this.repository.saveTodos(this.todos)
+    if (!saveResult.success) {
+      // 保存失敗時はロールバック
+      this.todos[index] = originalTodo
+      return {
+        success: false,
+        error: {
+          type: 'STORAGE_ERROR',
+          message: 'データの保存に失敗しました',
+        },
+      }
+    }
+
+    return { success: true, value: { ...updatedTodo } }
+  }
+
+  /**
+   * Todoアイテムをソートして取得
+   */
+  getSortedTodos(sortOption: SortOption): TodoItem[] {
+    const todos = [...this.todos]
+
+    switch (sortOption) {
+      case 'due-date-asc':
+        return todos.sort((a, b) => {
+          if (a.dueDate === null && b.dueDate === null) {
+            return a.createdAt.localeCompare(b.createdAt)
+          }
+          if (a.dueDate === null) return 1
+          if (b.dueDate === null) return -1
+          const cmp = a.dueDate.localeCompare(b.dueDate)
+          return cmp !== 0 ? cmp : a.createdAt.localeCompare(b.createdAt)
+        })
+      case 'due-date-desc':
+        return todos.sort((a, b) => {
+          if (a.dueDate === null && b.dueDate === null) {
+            return a.createdAt.localeCompare(b.createdAt)
+          }
+          if (a.dueDate === null) return 1
+          if (b.dueDate === null) return -1
+          const cmp = b.dueDate.localeCompare(a.dueDate)
+          return cmp !== 0 ? cmp : a.createdAt.localeCompare(b.createdAt)
+        })
+      case 'created-asc':
+        return todos.sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      case 'created-desc':
+        return todos.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      default:
+        return todos
+    }
+  }
+
+  /**
+   * Todoアイテムをフィルターして取得
+   */
+  getFilteredTodos(filterOption: FilterOption): TodoItem[] {
+    switch (filterOption) {
+      case 'overdue':
+        return this.todos.filter(t => isOverdue(t.dueDate, t.completed))
+      case 'today':
+        return this.todos.filter(t => t.dueDate !== null && isToday(t.dueDate))
+      case 'this-week':
+        return this.todos.filter(t => t.dueDate !== null && isThisWeek(t.dueDate))
+      case 'this-month':
+        return this.todos.filter(t => t.dueDate !== null && isThisMonth(t.dueDate))
+      case 'no-due-date':
+        return this.todos.filter(t => t.dueDate === null)
+      case 'all':
+      default:
+        return [...this.todos]
+    }
   }
 }

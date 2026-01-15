@@ -1,0 +1,23 @@
+{
+  "feature_name": "due-date",
+  "created_at": "2025-10-30T14:00:00Z",
+  "updated_at": "2026-01-16T04:00:00Z",
+  "language": "ja",
+  "phase": "completed",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": true,
+  "implementation_completed": true
+}

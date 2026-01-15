@@ -79,7 +79,12 @@ export class TodoRepository {
         return { success: true, value: [] }
       }
 
-      const todos = JSON.parse(jsonString) as TodoItem[]
+      // 後方互換性: dueDateフィールドがない既存データにnullを設定
+      const rawTodos = JSON.parse(jsonString) as Partial<TodoItem>[]
+      const todos: TodoItem[] = rawTodos.map(todo => ({
+        ...todo,
+        dueDate: todo.dueDate ?? null,
+      } as TodoItem))
       return { success: true, value: todos }
     } catch (error) {
       return {

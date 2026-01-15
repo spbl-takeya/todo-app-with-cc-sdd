@@ -1,11 +1,12 @@
 import { useState, FormEvent } from 'react'
 
 interface TodoFormProps {
-  onSubmit: (title: string) => void
+  onSubmit: (title: string, dueDate: string | null) => void
 }
 
 export function TodoForm({ onSubmit }: TodoFormProps) {
   const [title, setTitle] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
 
   const handleSubmit = (e: FormEvent) => {
@@ -16,8 +17,9 @@ export function TodoForm({ onSubmit }: TodoFormProps) {
       return
     }
 
-    onSubmit(title.trim())
+    onSubmit(title.trim(), dueDate || null)
     setTitle('')
+    setDueDate('')
     setValidationError(null)
   }
 
@@ -29,6 +31,12 @@ export function TodoForm({ onSubmit }: TodoFormProps) {
         onChange={(e) => setTitle(e.target.value)}
         placeholder="新しいTODOを入力..."
         className="todo-input"
+      />
+      <input
+        type="date"
+        value={dueDate}
+        onChange={(e) => setDueDate(e.target.value)}
+        className="todo-date-input"
       />
       <button type="submit" className="todo-button">
         追加
