@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/performance-test.ts","./src/setuptests.ts","./src/vite-env.d.ts","./src/components/errormessage.tsx","./src/components/todoform.tsx","./src/components/todoitem.tsx","./src/components/todolist.tsx","./src/repositories/todorepository.ts","./src/services/todoservice.ts","./src/types/todo.ts"],"version":"5.6.3"}
